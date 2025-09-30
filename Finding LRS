@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <string.h>
+
+int C[MAX_LEN][MAX_LEN];        
+char B[MAX_LEN][MAX_LEN];      
+char LRS_buffer[MAX_LEN];      
+
+#define DIAG 'D'  
+#define UP 'U'   
+#define LEFT 'L'
+
+void LRS_Length(const char S[MAX_LEN], int n) {
+    for (int i = 0; i <= n; i++) C[i][0] = 0;
+    for (int j = 0; j <= n; j++) C[0][j] = 0;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (S[i - 1] == S[j - 1] && i != j) {
+                C[i][j] = C[i - 1][j - 1] + 1;
+                B[i][j] = DIAG;
+            } else if (C[i - 1][j] >= C[i][j - 1]) {
+                C[i][j] = C[i - 1][j];
+                B[i][j] = UP;
+            } else {
+                C[i][j] = C[i][j - 1];
+                B[i][j] = LEFT;
+            }
+        }
+    }
+}
+void print_LRS(const char S[MAX_LEN], int i, int j, int *current_index) {
+    if (i == 0 || j == 0) {
+        return;
+    }
+    if (B[i][j] == DIAG) {
+        print_LRS(S, i - 1, j - 1, current_index);
+        LRS_buffer[*current_index] = S[i - 1];
+        (*current_index)++; 
+    } else if (B[i][j] == UP) {
+        print_LRS(S, i - 1, j, current_index);
+    } else { 
+        print_LRS(S, i, j - 1, current_index);
+    }
+}
+void print_Cost(const char S[MAX_LEN], int n) {
+    printf("\n\n--- Cost Matrix (C) for LRS ---\n");
+    printf("   |    |");
+    for (int j = 0; j < n; j++) {
+        printf(" %c  |", S[j]);
+    }
+    printf("\n---|----|");
+    for (int j = 0; j < n; j++) {
+        printf("----|");
+    }
+    printf("\n");
+    for (int i = 0; i <= n; i++) {
+        if (i == 0) {
+            printf("   |");
+        } else {
+            printf(" %c |", S[i - 1]);
+        }
+        for (int j = 0; j <= n; j++) {
+            printf(" %2d |", C[i][j]);
+        }
+        printf("\n---|----|");
+        for (int j = 0; j < n; j++) {
+            printf("----|");
+        }
+        printf("\n");
+    }
+}
+int main() {
+    const char S[MAX_LEN] = "AABCBDC"; // Length 7
+    int n = (int)strlen(S);
+    printf("Given String S: %s (Length: %d)\n", S, n);
+    LRS_Length(S, n);
+    print_Cost(S, n);
+    int final_cost = C[n][n];
+    printf("\n\n--- Final Cost and LRS ---\n");
+    printf("Final cost (Length) of LRS: %d\n", final_cost);
+    int current_index = 0;
+    print_LRS(S, n, n, &current_index); 
+    LRS_buffer[current_index] = '\0'; 
+
+    printf("The LRS is: %s\n", LRS_buffer);
+    printf("Length of LRS: %d\n", (int)strlen(LRS_buffer));
+    if (final_cost == 3) {
+        printf("\nResult matches the expected Length of 3 (LRS=ABC).\n");
+    } else {
+        printf("\nWARNING: Result does NOT match the expected LRS length.\n");
+    }
+}
