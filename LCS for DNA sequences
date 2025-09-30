@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define MAX_LEN 100
+
+int C[MAX_LEN][MAX_LEN];        
+char B[MAX_LEN][MAX_LEN];      
+char LCS_buffer[MAX_LEN];       
+
+#define DIAG 'D' 
+#define UP 'U'   
+#define LEFT 'L' 
+
+void LCS_Length(const char X[MAX_LEN], const char Y[MAX_LEN], int m, int n) {
+    for (int i = 0; i <= m; i++) C[i][0] = 0;
+    for (int j = 0; j <= n; j++) C[0][j] = 0;
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (X[i - 1] == Y[j - 1]) {
+                C[i][j] = C[i - 1][j - 1] + 1;
+                B[i][j] = DIAG;
+            } else if (C[i - 1][j] >= C[i][j - 1]) {
+                C[i][j] = C[i - 1][j];
+                B[i][j] = UP;
+            } else {
+                C[i][j] = C[i][j - 1];
+                B[i][j] = LEFT;
+            }
+        }
+    }
+}
+void print_LCS(const char X[MAX_LEN], int i, int j, int *current_index) {
+    if (i == 0 || j == 0) {
+        return;
+    }
+    if (B[i][j] == DIAG) {
+        print_LCS(X, i - 1, j - 1, current_index);
+        LCS_buffer[*current_index] = X[i - 1];
+        (*current_index)++; 
+    } else if (B[i][j] == UP) {
+        print_LCS(X, i - 1, j, current_index);
+    } else { 
+        print_LCS(X, i, j - 1, current_index);
+    }
+}
+void print_Cost(const char X[MAX_LEN], const char Y[MAX_LEN], int m, int n) {
+    printf("\n\n--- Cost Matrix (C) ---\n");
+    printf("   |    |");
+    for (int j = 0; j < n; j++) {
+        printf(" %c  |", Y[j]);
+    }
+    printf("\n---|----|");
+    for (int j = 0; j < n; j++) {
+        printf("----|");
+    }
+    printf("\n");
+    for (int i = 0; i <= m; i++) {
+        if (i == 0) {
+            printf("   |");
+        } else {
+            printf(" %c |", X[i - 1]);
+        }
+        
+        for (int j = 0; j <= n; j++) {
+            printf(" %2d |", C[i][j]);
+        }
+        printf("\n---|----|");
+        for (int j = 0; j < n; j++) {
+            printf("----|");
+        }
+        printf("\n");
+    }
+
+int main() {
+    const char X[MAX_LEN] = "AGCCCTAAAGGCTACCTAGCTT"; 
+    const char Y[MAX_LEN] = "GACAGCCTACAAGCGTTAGCTTG";
+    int m = (int)strlen(X);
+    int n = (int)strlen(Y);
+    printf("Sequence X: %s (Length: %d)\n", X, m);
+    printf("Sequence Y: %s (Length: %d)\n", Y, n);
+    
+    LCS_Length(X, Y, m, n);
+    print_Cost(X, Y, m, n);
+    
+    int final_cost = C[m][n];
+    printf("\n\n--- Final Cost and LCS ---\n");
+    printf("Final cost of LCS: %d\n", final_cost);
+    int current_index = 0;
+    print_LCS(X, m, n, &current_index); 
+    LCS_buffer[current_index] = '\0'; 
+    printf("The LCS is: %s\n", LCS_buffer);
+    printf("Length of LCS: %d\n", (int)strlen(LCS_buffer));
+    if (final_cost == 16) {
+        printf("\nResult matches the expected Length of LCS=16.\n");
+    } else {
+        printf("\nWARNING: Result does NOT match the expected Length of LCS=16.\n");
+    }
+}
